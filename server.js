@@ -56,13 +56,22 @@ app.post('/api/location', async (req, res) => {
   }
 
   try {
-    const newLocation = new Location({ latitude, longitude });
-    await newLocation.save();
-    res.status(201).json({ message: 'Location saved successfully', data: newLocation });
+    // Update the latest location or create it if it doesn't exist
+    const updatedLocation = await Location.findOneAndUpdate(
+      {}, // Match any document (since there should only be one)
+      { latitude, longitude, timestamp: Date.now() }, // Update fields
+      { upsert: true, new: true } // Create a new document if none exists
+    );
+
+    res.status(200).json({ 
+      message: 'Location updated successfully', 
+      data: updatedLocation 
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 // Test Route
 app.get('/', (req, res) => res.send('Server is running!'));
